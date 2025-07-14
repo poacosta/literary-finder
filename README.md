@@ -1,8 +1,8 @@
-# The Literary Finder
+# The Literary Finder 📖🔍
 
 **A Multi-Agent System for Deep Literary Discovery**
 
-The Literary Finder is an advanced AI-powered system that transforms how readers discover and connect with authors. It leverages a multi-agent architecture to provide deep, contextual, and personalized narratives about your favorite writers.
+The Literary Finder is an AI-powered system that transforms how readers discover and connect with authors. It leverages a multi-agent architecture to provide deep, contextual, and personalized narratives about your favorite writers.
 
 ---
 
@@ -109,6 +109,27 @@ The Literary Finder uses three specialized AI agents orchestrated by LangGraph:
 - **Literary Cartographer**: Compiles bibliographies and reading maps using Google Books API
 - **Legacy Connector**: Analyzes literary legacy, themes, and recommends similar authors
 
+## 🏗️ Technical Architecture
+
+### Multi-Agent Orchestration Pattern
+The Literary Finder implements a **supervisor-delegated multi-agent architecture** using LangGraph's stateful graph orchestration. This design pattern offers several advantages over monolithic AI systems:
+
+**Graph-Based Workflow:**
+- **Nodes:** Specialized AI agents (Contextual Historian, Literary Cartographer, Legacy Connector)
+- **Edges:** Control flow paths enabling both parallel and sequential execution
+- **State:** Shared memory bank tracking intermediate results and context
+
+**Orchestration Mechanisms:**
+- **Parallel Execution:** Agents run concurrently for optimal performance
+- **Sequential Fallback:** Graceful degradation when dependencies require ordered execution
+- **State Management:** Persistent checkpointing enables recovery and human-in-the-loop workflows
+
+### LangGraph Integration Benefits
+- **Stateful Persistence:** Unlike stateless pipelines, maintains context across agent interactions
+- **Fault Tolerance:** Built-in retry mechanisms and error handling
+- **Scalability:** Horizontal scaling through distributed agent execution
+- **Observability:** Full transparency into agent decision-making processes
+
 ---
 
 ## Configuration
@@ -186,7 +207,7 @@ pytest --cov=literary_finder
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
