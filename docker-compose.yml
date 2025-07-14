@@ -1,0 +1,11 @@
+services:
+  web:
+    build: .
+    ports:
+      - "7860:7860"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    volumes:
+      - .env:/app/.env:ro
+    restart: unless-stopped
