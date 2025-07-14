@@ -4,8 +4,6 @@
 
 The Literary Finder is an AI-powered system that transforms how readers discover and connect with authors. It leverages a multi-agent architecture to provide deep, contextual, and personalized narratives about your favorite writers.
 
----
-
 ## Quick Start (Docker-First)
 
 ### Prerequisites
@@ -54,8 +52,6 @@ docker run -p 7860:7860 \
   literary-finder
 ```
 
----
-
 ## Usage
 
 ### Web Interface (Gradio)
@@ -99,8 +95,6 @@ else:
     print(f"Error: {result['error']}")
 ```
 
----
-
 ## Architecture
 
 The Literary Finder uses three specialized AI agents orchestrated by LangGraph:
@@ -130,8 +124,6 @@ The Literary Finder implements a **supervisor-delegated multi-agent architecture
 - **Scalability:** Horizontal scaling through distributed agent execution
 - **Observability:** Full transparency into agent decision-making processes
 
----
-
 ## Configuration
 
 Edit your `.env` file with the following:
@@ -145,8 +137,6 @@ GOOGLE_API_KEY=your_google_books_api_key
 LOG_LEVEL=INFO
 MAX_CONCURRENT_REQUESTS=5
 ```
-
----
 
 ## Development
 
@@ -188,13 +178,9 @@ pytest
 pytest --cov=literary_finder
 ```
 
----
-
 ## Example Output
 
 * See [Screenshots](screenshots)
-
----
 
 ## Troubleshooting
 
@@ -203,7 +189,14 @@ pytest --cov=literary_finder
 - **Google Books API**: Ensure the API is enabled in your Google Cloud project
 - **Web Search Not Working**: Your OpenAI API key must have web search access
 
----
+## Disclaimer Notes
+
+1. The **Literary Finder represents a functional MVP** demonstrating core multi-agent coordination principles and agentic AI capabilities. While the system successfully orchestrates specialized agents for comprehensive literary analysis, certain features remain under development, including advanced caching mechanisms, comprehensive error recovery, and production-scale optimizations. 
+
+2. **Output quality requires human review and validation** - while the system demonstrates sophisticated synthesis capabilities, generated literary analyses should be verified for accuracy, completeness, and scholarly rigor before use in academic or professional contexts. 
+
+3. **Bibliography compilation relies on Google Books API data availability and coverage**, which may not include all published works or may contain metadata inconsistencies. The current implementation prioritizes architectural demonstration and functional completeness over performance optimization.
+
 
 ## License
 
