@@ -4,6 +4,10 @@
 
 The Literary Finder is an AI-powered system that transforms how readers discover and connect with authors. It leverages a multi-agent architecture to provide deep, contextual, and personalized narratives about your favorite writers.
 
+## Official Publication
+
+* [The Literary Finder: A Multi-Agent System for Deep Literary Discovery](https://app.readytensor.ai/publications/the-literary-finder-a-multi-agent-system-for-deep-literary-discovery-BY7PEDORLEaW)
+
 ## Quick Start (Docker-First)
 
 ### Prerequisites
