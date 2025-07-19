@@ -37,7 +37,8 @@ def initialize_graph() -> str:
 
         literary_graph = LiteraryFinderGraph(
             model_name="gpt-4o-mini",
-            enable_parallel=True
+            enable_parallel=True,
+            enable_evaluation=True
         )
 
         return f"✅ Literary Finder initialized with OpenAI gpt-4o-mini"
@@ -71,7 +72,8 @@ def analyze_author(
         if not enable_parallel:
             graph = LiteraryFinderGraph(
                 model_name="gpt-4o-mini",
-                enable_parallel=False
+                enable_parallel=False,
+                enable_evaluation=True
             )
 
         start_time = time.time()
@@ -84,10 +86,31 @@ def analyze_author(
         if result["success"]:
             final_report = result.get("final_report", "No report generated")
 
-            # Create status message
+            # Create status message with performance evaluation
             status_msg = f"✅ Analysis completed successfully in {processing_time:.1f} seconds"
             if result.get("errors"):
                 status_msg += f"\n⚠️ {len(result['errors'])} warnings encountered"
+            
+            # Add performance evaluation summary
+            if "performance_report" in result:
+                performance_report = result["performance_report"]
+                if performance_report:
+                    status_msg += f"\n\n📊 PERFORMANCE EVALUATION:"
+                    status_msg += f"\n• System Success Rate: {performance_report.system_metrics.success_rate:.1%}"
+                    status_msg += f"\n• Successful Agents: {performance_report.system_metrics.successful_agents}/{performance_report.system_metrics.total_agents}"
+                    status_msg += f"\n• Execution Mode: {'Parallel' if performance_report.system_metrics.parallel_execution else 'Sequential'}"
+                    status_msg += f"\n• Final Report Generated: {'Yes' if performance_report.system_metrics.has_final_report else 'No'}"
+                    status_msg += f"\n• Report Length: {performance_report.system_metrics.final_report_length:,} chars"
+                    
+                    if performance_report.quality_metrics:
+                        status_msg += f"\n• Overall Quality Score: {performance_report.quality_metrics.overall_quality:.1%}"
+                        status_msg += f"\n• Has Biographical Data: {'Yes' if performance_report.quality_metrics.has_biographical_data else 'No'}"
+                        status_msg += f"\n• Bibliography Items: {performance_report.quality_metrics.bibliography_item_count}"
+                        status_msg += f"\n• Has Literary Analysis: {'Yes' if performance_report.quality_metrics.has_literary_analysis else 'No'}"
+                    
+                    # Add top recommendation if available
+                    if performance_report.recommendations:
+                        status_msg += f"\n• Key Insight: {performance_report.recommendations[0]}"
 
             # Create error summary
             error_summary = ""
@@ -191,9 +214,11 @@ def create_gradio_app_v3() -> gr.Blocks:
                 - 📚 **Biographical Context**: Life story and historical background
                 - 🗺️ **Reading Map**: Strategic guide through the author's works
                 - 🎯 **Literary Analysis**: Style, themes, and significance
+                - 📊 **Performance Metrics**: Quality assessment and system evaluation
 
                 ### Requirements:
                 - Valid OpenAI API key (required for gpt-4o-mini model and web search)
+                - Google API key (optional for web search)
                 - Internet connection for research
                 - Patience - quality analysis takes time! ⏱️
 
@@ -216,10 +241,10 @@ def create_gradio_app_v3() -> gr.Blocks:
                 )
 
         # Status section
-        gr.Markdown("### 📊 Status")
+        gr.Markdown("### 📊 Analysis Status & Performance Metrics")
         status_output = gr.Textbox(
-            label="Analysis Status",
-            lines=3,
+            label="Analysis Status & Performance Evaluation",
+            lines=6,
             interactive=False
         )
 
