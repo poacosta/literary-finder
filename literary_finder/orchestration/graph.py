@@ -96,13 +96,13 @@ class LiteraryFinderGraph:
         try:
             # Start evaluation timing for each agent
             if self.evaluator:
-                self.evaluator.start_agent_evaluation("contextual_historian")
+                self.evaluator.start_agent_timing("contextual_historian")
             
             logger.info("Starting Contextual Historian")
             historian_result = self.historian.process(state.author_name)
             
             if self.evaluator:
-                self.evaluator.end_agent_evaluation("contextual_historian")
+                self.evaluator.end_agent_timing("contextual_historian")
             
             if historian_result["success"]:
                 results["contextual_historian"] = historian_result["data"]
@@ -112,13 +112,13 @@ class LiteraryFinderGraph:
                 results["errors"] = state.errors + [f"Historian: {historian_result.get('error')}"]
 
             if self.evaluator:
-                self.evaluator.start_agent_evaluation("literary_cartographer")
+                self.evaluator.start_agent_timing("literary_cartographer")
             
             logger.info("Starting Literary Cartographer")
             cartographer_result = self.cartographer.process(state.author_name)
             
             if self.evaluator:
-                self.evaluator.end_agent_evaluation("literary_cartographer")
+                self.evaluator.end_agent_timing("literary_cartographer")
                 
             if cartographer_result["success"]:
                 results["literary_cartographer"] = cartographer_result["data"]
@@ -129,13 +129,13 @@ class LiteraryFinderGraph:
                     f"Cartographer: {cartographer_result.get('error')}"]
 
             if self.evaluator:
-                self.evaluator.start_agent_evaluation("legacy_connector")
+                self.evaluator.start_agent_timing("legacy_connector")
                 
             logger.info("Starting Legacy Connector")
             legacy_result = self.legacy_connector.process(state.author_name)
             
             if self.evaluator:
-                self.evaluator.end_agent_evaluation("legacy_connector")
+                self.evaluator.end_agent_timing("legacy_connector")
                 
             if legacy_result["success"]:
                 results["legacy_connector"] = legacy_result["data"]
