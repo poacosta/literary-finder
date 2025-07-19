@@ -12,13 +12,34 @@ logger = logging.getLogger(__name__)
 
 
 class ContextualHistorian(BaseAgent):
-    """Agent responsible for researching author's biographical and historical context."""
+    """
+    Contextual Historian Agent - Biographical and Historical Research Specialist
+    
+    ROLE SPECIALIZATION:
+    The Contextual Historian is the system's biographical research expert, specializing in:
+    - Comprehensive biographical fact-finding (birth/death dates, nationality, education)
+    - Historical and cultural context analysis of the author's era
+    - Literary influence mapping and movement identification
+    - Personal experience correlation with literary themes
+    
+    CAPABILITIES:
+    - Web search integration for authoritative biographical sources
+    - Historical context analysis and synthesis
+    - Pattern recognition for life-to-literature connections
+    - Structured data extraction and validation
+    
+    OUTPUT FORMAT: AuthorContext with biographical summary, dates, and historical context
+    """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.search_api = OpenAISearchAPI()
         self.tools = self.get_tools()
         self.agent = self._create_agent_executor()
+
+    def get_agent_role(self) -> str:
+        """Get the specific role and specialization of this agent."""
+        return "Biographical and Historical Research Specialist"
 
     def get_tools(self) -> List[Tool]:
         """Get tools for biographical and historical research."""

@@ -12,13 +12,34 @@ logger = logging.getLogger(__name__)
 
 
 class LiteraryCartographer(BaseAgent):
-    """Agent responsible for compiling complete bibliographies and creating reading maps."""
+    """
+    Literary Cartographer Agent - Bibliography Compilation and Reading Map Expert
+    
+    ROLE SPECIALIZATION:
+    The Literary Cartographer is the system's bibliographic specialist, focusing on:
+    - Comprehensive bibliography compilation using Google Books API
+    - Strategic reading map creation for different reader types
+    - Chronological work organization and literary development tracking
+    - Thematic categorization and genre classification
+    
+    CAPABILITIES:
+    - Google Books API integration for comprehensive book discovery
+    - Publication chronology analysis and literary timeline creation
+    - Reading recommendation algorithms based on accessibility and significance
+    - Multi-dimensional work categorization (genre, theme, complexity)
+    
+    OUTPUT FORMAT: ReadingMap with chronological bibliography, starter recommendations, and thematic groups
+    """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.google_books = GoogleBooksAPI()
         self.tools = self.get_tools()
         self.agent = self._create_agent_executor()
+
+    def get_agent_role(self) -> str:
+        """Get the specific role and specialization of this agent."""
+        return "Bibliography Compilation and Reading Map Expert"
 
     def get_tools(self) -> List[Tool]:
         """Get tools for bibliography compilation."""

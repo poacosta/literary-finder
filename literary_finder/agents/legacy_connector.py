@@ -12,13 +12,34 @@ logger = logging.getLogger(__name__)
 
 
 class LegacyConnector(BaseAgent):
-    """Agent responsible for analyzing author's legacy."""
+    """
+    Legacy Connector Agent - Literary Analysis and Critical Assessment Specialist
+    
+    ROLE SPECIALIZATION:
+    The Legacy Connector is the system's literary analysis expert, specializing in:
+    - Stylistic innovation identification and literary technique analysis
+    - Recurring theme extraction and philosophical concern mapping
+    - Critical reception analysis and scholarly discourse synthesis
+    - Literary influence assessment and comparative analysis
+    
+    CAPABILITIES:
+    - Academic criticism search and synthesis
+    - Thematic pattern recognition across works
+    - Stylistic analysis and innovation identification
+    - Literary significance evaluation and contextualization
+    
+    OUTPUT FORMAT: LegacyAnalysis with stylistic innovations, themes, and critical assessment
+    """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.search_api = OpenAISearchAPI()
         self.tools = self.get_tools()
         self.agent = self._create_agent_executor()
+
+    def get_agent_role(self) -> str:
+        """Get the specific role and specialization of this agent."""
+        return "Literary Analysis and Critical Assessment Specialist"
 
     def get_tools(self) -> List[Tool]:
         """Get tools for legacy analysis."""
