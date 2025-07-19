@@ -1,10 +1,11 @@
 """LangGraph orchestration for the Literary Finder system."""
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 from ..models import LiteraryFinderState, AgentStatus
 from ..agents import ContextualHistorian, LiteraryCartographer, LegacyConnector
+from ..evaluation import PerformanceEvaluator, PerformanceReport
 import logging
 from datetime import datetime
 import asyncio
@@ -18,10 +19,15 @@ class LiteraryFinderGraph:
     def __init__(
             self,
             model_name: str = None,
-            enable_parallel: bool = True
+            enable_parallel: bool = True,
+            enable_evaluation: bool = True
     ):
         self.model_name = model_name
         self.enable_parallel = enable_parallel
+        self.enable_evaluation = enable_evaluation
+
+        # Initialize performance evaluator
+        self.evaluator = PerformanceEvaluator() if enable_evaluation else None
 
         # Initialize agents with OpenAI only
         self.historian = ContextualHistorian(
@@ -88,8 +94,16 @@ class LiteraryFinderGraph:
         results = {}
 
         try:
+            # Start evaluation timing for each agent
+            if self.evaluator:
+                self.evaluator.start_agent_evaluation("contextual_historian")
+            
             logger.info("Starting Contextual Historian")
             historian_result = self.historian.process(state.author_name)
+            
+            if self.evaluator:
+                self.evaluator.end_agent_evaluation("contextual_historian")
+            
             if historian_result["success"]:
                 results["contextual_historian"] = historian_result["data"]
                 logger.info("Contextual Historian completed successfully")
@@ -97,8 +111,15 @@ class LiteraryFinderGraph:
                 logger.error(f"Contextual Historian failed: {historian_result.get('error')}")
                 results["errors"] = state.errors + [f"Historian: {historian_result.get('error')}"]
 
+            if self.evaluator:
+                self.evaluator.start_agent_evaluation("literary_cartographer")
+            
             logger.info("Starting Literary Cartographer")
             cartographer_result = self.cartographer.process(state.author_name)
+            
+            if self.evaluator:
+                self.evaluator.end_agent_evaluation("literary_cartographer")
+                
             if cartographer_result["success"]:
                 results["literary_cartographer"] = cartographer_result["data"]
                 logger.info("Literary Cartographer completed successfully")
@@ -107,8 +128,15 @@ class LiteraryFinderGraph:
                 results["errors"] = results.get("errors", state.errors) + [
                     f"Cartographer: {cartographer_result.get('error')}"]
 
+            if self.evaluator:
+                self.evaluator.start_agent_evaluation("legacy_connector")
+                
             logger.info("Starting Legacy Connector")
             legacy_result = self.legacy_connector.process(state.author_name)
+            
+            if self.evaluator:
+                self.evaluator.end_agent_evaluation("legacy_connector")
+                
             if legacy_result["success"]:
                 results["legacy_connector"] = legacy_result["data"]
                 logger.info("Legacy Connector completed successfully")
@@ -406,6 +434,10 @@ class LiteraryFinderGraph:
     def process_author(self, author_name: str) -> Dict[str, Any]:
         """Process an author through the complete Literary Finder pipeline."""
         try:
+            # Start performance evaluation
+            if self.evaluator:
+                self.evaluator.start_evaluation()
+            
             initial_state = LiteraryFinderState(author_name=author_name)
 
             import uuid
@@ -414,12 +446,25 @@ class LiteraryFinderGraph:
             config = {"configurable": {"thread_id": thread_id}}
             result = self.graph.invoke(initial_state, config=config)
 
-            return {
+            # Add author name to result for evaluation
+            result["author_name"] = author_name
+
+            response = {
                 "success": True,
                 "data": result,
                 "final_report": result.get("final_report"),
                 "errors": result.get("errors", [])
             }
+
+            # Generate performance evaluation if enabled
+            if self.evaluator:
+                performance_report = self.evaluator.evaluate_system_performance(
+                    result, parallel_execution=self.enable_parallel
+                )
+                response["performance_report"] = performance_report
+                logger.info(f"Performance evaluation completed for {author_name}")
+
+            return response
 
         except Exception as e:
             logger.error(f"Error processing author {author_name}: {e}")
@@ -428,3 +473,10 @@ class LiteraryFinderGraph:
                 "error": str(e),
                 "data": None
             }
+    
+    def get_performance_summary(self, result: Dict[str, Any]) -> Optional[str]:
+        """Get a human-readable performance summary from the result."""
+        performance_report = result.get("performance_report")
+        if performance_report:
+            return performance_report.generate_summary()
+        return None

@@ -6,7 +6,7 @@ The Literary Finder is an AI-powered system that transforms how readers discover
 
 ## Official Publication
 
-* [The Literary Finder: A Multi-Agent System for Deep Literary Discovery](https://app.readytensor.ai/publications/the-literary-finder-a-multi-agent-system-for-deep-literary-discovery-BY7PEDORLEaW)
+- [The Literary Finder: A Multi-Agent System for Deep Literary Discovery](https://app.readytensor.ai/publications/the-literary-finder-a-multi-agent-system-for-deep-literary-discovery-BY7PEDORLEaW)
 
 ## Quick Start (Docker-First)
 
@@ -74,6 +74,7 @@ uvicorn literary_finder.api.server:app --reload --host 0.0.0.0 --port 8000
 ```
 
 API endpoints:
+
 - `/analyze` (POST): Analyze an author
 - `/health` (GET): Health check
 - `/docs`: Interactive API docs
@@ -91,42 +92,120 @@ curl -X POST "http://localhost:8000/analyze" \
 ```python
 from literary_finder.orchestration import LiteraryFinderGraph
 
-finder = LiteraryFinderGraph(llm_provider="openai")
+# Initialize with performance evaluation enabled (default)
+finder = LiteraryFinderGraph(enable_evaluation=True)
 result = finder.process_author("Octavia Butler")
+
 if result["success"]:
     print(result["final_report"])
+
+    # Access performance metrics (if evaluation enabled)
+    if "performance_report" in result:
+        performance_summary = finder.get_performance_summary(result)
+        print("\n=== PERFORMANCE SUMMARY ===")
+        print(performance_summary)
 else:
     print(f"Error: {result['error']}")
 ```
 
 ## Architecture
 
-The Literary Finder uses three specialized AI agents orchestrated by LangGraph:
+The Literary Finder uses three specialized AI agents orchestrated by LangGraph, each with distinct roles and capabilities:
 
-- **Contextual Historian**: Investigates the author's life, influences, and historical era
-- **Literary Cartographer**: Compiles bibliographies and reading maps using Google Books API
-- **Legacy Connector**: Analyzes literary legacy, themes, and recommends similar authors
+### Agent Specializations
 
-## 🏗️ Technical Architecture
+#### **Contextual Historian** - Biographical and Historical Research Specialist
+
+- **Primary Role**: Comprehensive biographical fact-finding and historical context analysis
+- **Capabilities**:
+  - Biographical data extraction (birth/death dates, nationality, education)
+  - Historical and cultural context synthesis of the author's era
+  - Literary influence mapping and movement identification
+  - Personal experience correlation with literary themes
+- **Tools**: Web search integration, historical context analysis, pattern recognition
+- **Output**: Structured `AuthorContext` with biographical summary and historical insights
+
+#### **Literary Cartographer** - Bibliography Compilation and Reading Map Expert
+
+- **Primary Role**: Complete bibliography compilation and strategic reading recommendations
+- **Capabilities**:
+  - Comprehensive book discovery using Google Books API
+  - Publication chronology analysis and literary development tracking
+  - Reading recommendation algorithms based on accessibility and significance
+  - Multi-dimensional work categorization (genre, theme, complexity)
+- **Tools**: Google Books API integration, chronological analysis, thematic categorization
+- **Output**: Comprehensive `ReadingMap` with starter recommendations and thematic groups
+
+#### **Legacy Connector** - Literary Analysis and Critical Assessment Specialist
+
+- **Primary Role**: Literary analysis, critical reception synthesis, and influence assessment
+- **Capabilities**:
+  - Stylistic innovation identification and literary technique analysis
+  - Recurring theme extraction and philosophical concern mapping
+  - Critical reception analysis and scholarly discourse synthesis
+  - Literary significance evaluation and comparative analysis
+- **Tools**: Academic criticism search, thematic pattern recognition, stylistic analysis
+- **Output**: Detailed `LegacyAnalysis` with innovations, themes, and critical assessment
+
+## Technical Architecture
 
 ### Multi-Agent Orchestration Pattern
+
 The Literary Finder implements a **supervisor-delegated multi-agent architecture** using LangGraph's stateful graph orchestration. This design pattern offers several advantages over monolithic AI systems:
 
 **Graph-Based Workflow:**
+
 - **Nodes:** Specialized AI agents (Contextual Historian, Literary Cartographer, Legacy Connector)
 - **Edges:** Control flow paths enabling both parallel and sequential execution
 - **State:** Shared memory bank tracking intermediate results and context
 
 **Orchestration Mechanisms:**
+
 - **Parallel Execution:** Agents run concurrently for optimal performance
 - **Sequential Fallback:** Graceful degradation when dependencies require ordered execution
 - **State Management:** Persistent checkpointing enables recovery and human-in-the-loop workflows
 
 ### LangGraph Integration Benefits
+
 - **Stateful Persistence:** Unlike stateless pipelines, maintains context across agent interactions
 - **Fault Tolerance:** Built-in retry mechanisms and error handling
 - **Scalability:** Horizontal scaling through distributed agent execution
 - **Observability:** Full transparency into agent decision-making processes
+
+### Performance Evaluation System
+
+The Literary Finder includes a comprehensive performance evaluation framework that assesses:
+
+#### **System-Level Metrics**
+
+- Execution time and throughput analysis
+- Agent success/failure rates and reliability metrics
+- Parallel vs sequential execution performance comparison
+- Error tracking and fault tolerance assessment
+
+#### **Agent-Level Performance**
+
+- Individual agent execution timing and efficiency
+- Tool usage patterns and optimization opportunities
+- Output quality scoring based on role-specific criteria
+- Data completeness and accuracy assessment
+
+#### **Content Quality Metrics**
+
+- **Biographical Completeness**: Scoring of biographical data coverage (dates, nationality, context)
+- **Bibliography Coverage**: Assessment of reading map comprehensiveness and recommendation quality
+- **Analysis Depth**: Evaluation of literary analysis quality and critical insight depth
+- **Citation Quality**: Source reliability and academic rigor assessment
+- **Narrative Coherence**: Final report structure and readability evaluation
+
+#### **Automated Recommendations**
+
+The system generates actionable optimization recommendations based on performance analysis:
+
+- API optimization strategies for slow agents
+- Error handling improvements for failed executions
+- Content quality enhancement suggestions
+- System configuration optimizations
 
 ## Configuration
 
@@ -184,7 +263,7 @@ pytest --cov=literary_finder
 
 ## Example Output
 
-* See [Screenshots](screenshots)
+- See [Screenshots](screenshots)
 
 ## Troubleshooting
 
@@ -195,12 +274,11 @@ pytest --cov=literary_finder
 
 ## Disclaimer Notes
 
-1. The **Literary Finder represents a functional MVP** demonstrating core multi-agent coordination principles and agentic AI capabilities. While the system successfully orchestrates specialized agents for comprehensive literary analysis, certain features remain under development, including advanced caching mechanisms, comprehensive error recovery, and production-scale optimizations. 
+1. The **Literary Finder represents a functional MVP** demonstrating core multi-agent coordination principles and agentic AI capabilities. While the system successfully orchestrates specialized agents for comprehensive literary analysis, certain features remain under development, including advanced caching mechanisms, comprehensive error recovery, and production-scale optimizations.
 
-2. **Output quality requires human review and validation** - while the system demonstrates sophisticated synthesis capabilities, generated literary analyses should be verified for accuracy, completeness, and scholarly rigor before use in academic or professional contexts. 
+2. **Output quality requires human review and validation** - while the system demonstrates sophisticated synthesis capabilities, generated literary analyses should be verified for accuracy, completeness, and scholarly rigor before use in academic or professional contexts.
 
 3. **Bibliography compilation relies on Google Books API data availability and coverage**, which may not include all published works or may contain metadata inconsistencies. The current implementation prioritizes architectural demonstration and functional completeness over performance optimization.
-
 
 ## License
 
@@ -208,7 +286,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-*The Literary Finder: Bridging the gap between readers and the vast world of literature, one author at a time.* 📚✨
-
+_The Literary Finder: Bridging the gap between readers and the vast world of literature, one author at a time._ 📚✨
 
 [def]: './screenshoots'
