@@ -32,9 +32,7 @@ def main():
         share=False,  # Hugging Face handles sharing
         debug=False,
         show_error=True,
-        quiet=False,
-        enable_queue=True,  # Enable queue for better performance
-        max_threads=40  # Allow more concurrent users
+        quiet=False
     )
 
 if __name__ == "__main__":

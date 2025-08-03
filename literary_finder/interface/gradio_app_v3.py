@@ -1,4 +1,4 @@
-"""Gradio 3.x compatible web interface for the Literary Finder."""
+"""Gradio 5.x compatible web interface for the Literary Finder."""
 
 import gradio as gr
 import logging
@@ -142,7 +142,7 @@ def analyze_author(
 
 
 def create_gradio_app_v3() -> gr.Blocks:
-    """Create a Gradio 3.x compatible application."""
+    """Create a Gradio 5.x compatible application."""
 
     # Example authors
     examples = [
@@ -150,7 +150,7 @@ def create_gradio_app_v3() -> gr.Blocks:
         "Maya Angelou", "James Baldwin", "Octavia Butler", "Haruki Murakami"
     ]
 
-    # Custom CSS for Gradio 3.x
+    # Custom CSS for Gradio 5.x
     custom_css = """
     .gradio-container { 
         max-width: 1200px; 
@@ -167,7 +167,7 @@ def create_gradio_app_v3() -> gr.Blocks:
     }
     """
 
-    # Create the interface using Gradio 3.x API
+    # Create the interface using Gradio 5.x API
     with gr.Blocks(css=custom_css, title="The Literary Finder") as app:
         # Header
         gr.HTML("""
@@ -301,7 +301,7 @@ def launch_app_v3(
         share: bool = False,
         debug: bool = False
 ) -> None:
-    """Launch the Gradio 3.x application."""
+    """Launch the Gradio 5.x application."""
 
     required_vars = ["OPENAI_API_KEY", "GOOGLE_API_KEY"]
     missing_vars = [var for var in required_vars if not os.getenv(var)]
@@ -313,7 +313,7 @@ def launch_app_v3(
         print("\nPlease set these in your .env file or environment.")
         return
 
-    print("🚀 Starting The Literary Finder (Gradio 3.x)...")
+    print("🚀 Starting The Literary Finder (Gradio 5.x)...")
     print(f"📍 Server will be available at: http://{server_name}:{server_port}")
     print("📚 Ready to discover literary insights!")
 
