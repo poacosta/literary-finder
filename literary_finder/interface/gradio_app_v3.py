@@ -25,15 +25,8 @@ def initialize_graph() -> str:
 
     try:
         # Check for required environment variables
-        required_vars = ["OPENAI_API_KEY"]
-
-        missing_vars = []
-        for var in required_vars:
-            if not os.getenv(var):
-                missing_vars.append(var)
-
-        if missing_vars:
-            return f"❌ Missing required environment variables: {', '.join(missing_vars)}"
+        if not os.getenv("OPENAI_API_KEY"):
+            return "⚠️ No OpenAI API key found in environment - users must provide their own"
 
         literary_graph = LiteraryFinderGraph(
             model_name="gpt-4o-mini",
@@ -50,7 +43,9 @@ def initialize_graph() -> str:
 
 def analyze_author(
         author_name: str,
-        enable_parallel: bool = True
+        enable_parallel: bool = True,
+        openai_api_key: str = "",
+        google_api_key: str = ""
 ) -> Tuple[str, str, str]:
     """Analyze an author and return the results."""
 
@@ -60,6 +55,16 @@ def analyze_author(
     author_name = author_name.strip()
 
     try:
+        # Set API keys if provided by user
+        if openai_api_key.strip():
+            os.environ["OPENAI_API_KEY"] = openai_api_key.strip()
+        if google_api_key.strip():
+            os.environ["GOOGLE_API_KEY"] = google_api_key.strip()
+            
+        # Check for required API keys
+        if not os.getenv("OPENAI_API_KEY"):
+            return "❌ OpenAI API key is required. Please provide it in the API Key section.", "", ""
+
         # Initialize or update graph if needed
         global literary_graph
         if not literary_graph:
@@ -175,6 +180,26 @@ def create_gradio_app_v3() -> gr.Blocks:
 
         with gr.Row():
             with gr.Column(scale=1):
+                # API Keys section
+                gr.Markdown("## 🔑 API Configuration")
+                gr.Markdown("*Provide your own API keys or leave empty to use default ones*")
+                
+                openai_key_input = gr.Textbox(
+                    label="OpenAI API Key (Required)",
+                    placeholder="sk-...",
+                    type="password",
+                    lines=1
+                )
+                
+                google_key_input = gr.Textbox(
+                    label="Google Books API Key (Optional)",
+                    placeholder="Enter your Google API key",
+                    type="password",
+                    lines=1
+                )
+                
+                gr.Markdown("---")
+                
                 # Input section
                 gr.Markdown("## 🔍 Author Analysis")
 
@@ -218,9 +243,13 @@ def create_gradio_app_v3() -> gr.Blocks:
 
                 ### Requirements:
                 - Valid OpenAI API key (required for gpt-4o-mini model and web search)
-                - Google API key (optional for web search)
+                - Google API key (optional for enhanced web search)
                 - Internet connection for research
                 - Patience - quality analysis takes time! ⏱️
+                
+                ### Getting API Keys:
+                - **OpenAI**: Visit [OpenAI Platform](https://platform.openai.com/) to get your API key
+                - **Google Books**: Visit [Google Cloud Console](https://console.cloud.google.com/) to enable the Books API
 
                 ### AI Model:
                 - **OpenAI gpt-4o-mini**: Cost-effective, fast model optimized for literary analysis
@@ -251,7 +280,7 @@ def create_gradio_app_v3() -> gr.Blocks:
         # Setup main event handler
         analyze_btn.click(
             fn=analyze_author,
-            inputs=[author_input, parallel_processing],
+            inputs=[author_input, parallel_processing, openai_key_input, google_key_input],
             outputs=[status_output, report_output, error_output]
         )
 
