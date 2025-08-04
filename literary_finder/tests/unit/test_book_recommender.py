@@ -1,3 +1,45 @@
+# Additional coverage: error handling and edge cases
+def test_get_author_books_error(monkeypatch):
+    agent = BookRecommendationAgent()
+    # Simulate GoogleBooksAPI raising an exception
+    class Dummy:
+        def search_books_by_author(self, author_name, max_results=10):
+            raise Exception("API error")
+    agent.google_books = Dummy()
+    result = agent._get_author_books("Any Author")
+    assert "Error retrieving books" in result
+
+def test_get_book_details_error(monkeypatch):
+    agent = BookRecommendationAgent()
+    # Simulate GoogleBooksAPI raising an exception
+    class Dummy:
+        def search_books_by_author(self, author_name, max_results=10):
+            raise Exception("API error")
+    agent.google_books = Dummy()
+    result = agent._get_book_details("for Any Author")
+    assert "Error getting book details" in result
+
+def test_find_popular_books_error(monkeypatch):
+    agent = BookRecommendationAgent()
+    # Simulate GoogleBooksAPI raising an exception
+    class Dummy:
+        def search_books_by_author(self, author_name, max_results=10):
+            raise Exception("API error")
+    agent.google_books = Dummy()
+    result = agent._find_popular_books("Any Author")
+    assert "Error finding popular books" in result
+
+def test_tool_registration():
+    agent = BookRecommendationAgent()
+    tools = agent.get_tools()
+    tool_names = [tool.name for tool in tools]
+    assert set(tool_names) == {"get_author_books", "get_book_details", "find_popular_books"}
+
+def test_system_prompt_content():
+    agent = BookRecommendationAgent()
+    prompt = agent.get_system_prompt()
+    assert "efficient AI agent" in prompt
+    assert "Google Books data" in prompt
 """Unit test for BookRecommendationAgent basic functionality."""
 import pytest
 from literary_finder.agents.book_recommender import BookRecommendationAgent
