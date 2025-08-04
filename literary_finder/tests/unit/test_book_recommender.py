@@ -79,3 +79,87 @@ def test_handle_error(monkeypatch):
         result = agent._handle_error(error, "test context")
         assert isinstance(result, dict)
         assert "error" in result
+
+
+# Additional tests for coverage
+def test_repr_and_str():
+    agent = BookRecommendationAgent()
+    # If __repr__ or __str__ are implemented, test them
+    assert isinstance(repr(agent), str)
+    assert isinstance(str(agent), str)
+
+def test_get_author_books_type(monkeypatch):
+    agent = BookRecommendationAgent()
+    # Simulate books with different types
+    class Book:
+        def __init__(self):
+            self.title = "TypeTest"
+            self.published_date = "2021"
+            self.description = "TypeTestDesc"
+            self.categories = ["TestCat"]
+    agent.google_books = type("Dummy", (), {"search_books_by_author": lambda self, author_name, max_results=10: [Book()]})()
+    result = agent._get_author_books("TypeTest Author")
+    assert "TypeTest" in result
+
+def test_get_tools_content():
+    agent = BookRecommendationAgent()
+    tools = agent.get_tools()
+    for tool in tools:
+        assert hasattr(tool, "name")
+        assert hasattr(tool, "description")
+
+def test_get_system_prompt_content():
+    agent = BookRecommendationAgent()
+    prompt = agent.get_system_prompt()
+    assert "Book Recommender" in prompt
+    assert "recommend" in prompt.lower()
+
+def test_find_popular_books_categories(monkeypatch):
+    agent = BookRecommendationAgent()
+    # Simulate books with multiple categories
+    agent.google_books = type("Dummy", (), {"search_books_by_author": lambda self, author_name, max_results=10: [type('Book', (), {'title': 'Novel', 'published_date': '2010-01-01', 'description': 'A'*120, 'categories': ['Fiction', 'Adventure']})() for _ in range(2)]})()
+    result = agent._find_popular_books("Popular Author")
+    assert "Popular/Essential books by Popular Author" in result
+    assert "Novel" in result
+    # The output does not include categories, only title and header
+def test_get_book_details(monkeypatch):
+    agent = BookRecommendationAgent()
+    # Simulate books with rich metadata
+    agent.google_books = type("Dummy", (), {"search_books_by_author": lambda self, author_name, max_results=10: [type('Book', (), {'title': 'Rich', 'published_date': '2020-01-01', 'description': 'A'*201, 'categories': ['Fiction', 'Drama']})() for _ in range(3)]})()
+    result = agent._get_book_details("for Rich Author")
+    assert "Detailed book information" in result
+    assert "Rich" in result
+
+def test_get_book_details_no_books(monkeypatch):
+    agent = BookRecommendationAgent()
+    agent.google_books = type("Dummy", (), {"search_books_by_author": lambda self, author_name, max_results=10: []})()
+    result = agent._get_book_details("for Unknown Author")
+    assert "No detailed book information found" in result
+
+def test_find_popular_books(monkeypatch):
+    agent = BookRecommendationAgent()
+    agent.google_books = type("Dummy", (), {"search_books_by_author": lambda self, author_name, max_results=10: [type('Book', (), {'title': 'Novel', 'published_date': '2010-01-01', 'description': 'A'*120, 'categories': ['Fiction']})() for _ in range(5)]})()
+    result = agent._find_popular_books("Popular Author")
+    assert "Popular/Essential books by Popular Author" in result
+    assert "Novel" in result
+
+def test_find_popular_books_no_books(monkeypatch):
+    agent = BookRecommendationAgent()
+    agent.google_books = type("Dummy", (), {"search_books_by_author": lambda self, author_name, max_results=10: []})()
+    result = agent._find_popular_books("Unknown Author")
+    assert "No popular books found" in result
+
+def test_parse_book_results_years():
+    agent = BookRecommendationAgent()
+    output = "1980, 2000, 2010"
+    context = agent._parse_book_results(output, "Test Author")
+    assert hasattr(context, "biographical_summary")
+    assert "Essential Books by Test Author" in context.biographical_summary
+    assert context.birth_year is not None
+
+def test_parse_book_results_no_years():
+    agent = BookRecommendationAgent()
+    output = "No years here"
+    context = agent._parse_book_results(output, "Test Author")
+    assert hasattr(context, "biographical_summary")
+    assert "Essential Books by Test Author" in context.biographical_summary
