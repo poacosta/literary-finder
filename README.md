@@ -15,6 +15,14 @@ pinned: false
 
 Welcome to The Literary Finder on Hugging Face Spaces! This AI-powered system transforms how readers discover and connect with authors through a sophisticated multi-agent architecture.
 
+## Technical README
+
+- [TECHNICAL README](TECHNICAL_README.md)
+
+## Official Publication
+
+- [The Literary Finder: A Multi-Agent System for Deep Literary Discovery](https://app.readytensor.ai/publications/the-literary-finder-a-multi-agent-system-for-deep-literary-discovery-BY7PEDORLEaW)
+
 ## Quick Start
 
 1. **Provide API Keys**: Enter your OpenAI API key in the "API Configuration" section
@@ -110,5 +118,3 @@ The Literary Finder demonstrates advanced AI agent coordination using:
 - **Publication**: [The Literary Finder Research Paper](https://app.readytensor.ai/publications/the-literary-finder-a-multi-agent-system-for-deep-literary-discovery-BY7PEDORLEaW)
 - **OpenAI API**: [Get your API key](https://platform.openai.com/)
 - **Google Books API**: [Enable the API](https://console.cloud.google.com/)
-
----
