@@ -13,3 +13,28 @@ def test_get_agent_role():
     role = agent.get_agent_role()
     assert isinstance(role, str)
     assert role == "Bibliography Compilation and Reading Map Expert"
+
+
+def test_get_tools():
+    agent = LiteraryCartographer()
+    tools = agent.get_tools()
+    assert isinstance(tools, list)
+    assert any(tool.name == "search_author_books" for tool in tools)
+
+def test_get_system_prompt():
+    agent = LiteraryCartographer()
+    prompt = agent.get_system_prompt()
+    assert isinstance(prompt, str)
+    assert "Literary Cartographer" in prompt
+
+def test_process_returns_dict(monkeypatch):
+    agent = LiteraryCartographer()
+    # Mock tool methods to avoid external calls
+    agent._search_author_books = lambda author_name: "Books info"
+    agent._analyze_chronology = lambda query: "Chronology"
+    agent._categorize_works = lambda query: "Categories"
+    agent._parse_bibliography_results = lambda output, author_name: {"bibliography": output}
+    result = agent.process("Test Author")
+    assert isinstance(result, dict)
+    assert "data" in result
+    assert "bibliography" in result["data"]
