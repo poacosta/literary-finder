@@ -34,3 +34,26 @@ def test_run_agents_parallel(monkeypatch):
     graph.legacy_connector.process = lambda author_name, context=None: {"success": True, "data": "legacy_connector"}
     result = graph._run_agents_parallel(DummyState())
     assert isinstance(result, dict)
+
+def test_run_agents_parallel_with_failure(monkeypatch):
+    graph = LiteraryFinderGraph()
+    class DummyState:
+        author_name = "Test Author"
+        errors = []
+    # Patch agents to simulate historian failure
+    graph.historian.process = lambda author_name, context=None: {"success": False, "error": "fail", "data": None}
+    graph.cartographer.process = lambda author_name, context=None: {"success": True, "data": "cartographer"}
+    graph.legacy_connector.process = lambda author_name, context=None: {"success": True, "data": "legacy_connector"}
+    result = graph._run_agents_parallel(DummyState())
+    assert isinstance(result, dict)
+    # Should log error and continue
+
+def test_start_processing_with_existing_status():
+    graph = LiteraryFinderGraph()
+    class DummyState:
+        author_name = "Test Author"
+        agent_statuses = {"contextual_historian": "COMPLETED"}
+    result = graph._start_processing(DummyState())
+    assert isinstance(result, dict)
+    assert "processing_started_at" in result
+    assert "agent_statuses" in result

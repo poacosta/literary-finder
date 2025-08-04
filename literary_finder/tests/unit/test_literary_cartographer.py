@@ -38,3 +38,23 @@ def test_process_returns_dict(monkeypatch):
     assert isinstance(result, dict)
     assert "data" in result
     assert "bibliography" in result["data"]
+
+def test_process_empty_author(monkeypatch):
+    agent = LiteraryCartographer()
+    # Patch all tool methods to return empty
+    agent._search_author_books = lambda author_name: ""
+    agent._analyze_chronology = lambda query: ""
+    agent._categorize_works = lambda query: ""
+    agent._parse_bibliography_results = lambda output, author_name: {"bibliography": output}
+    result = agent.process("")
+    assert isinstance(result, dict)
+    assert "data" in result
+
+
+def test_process_exception(monkeypatch):
+    agent = LiteraryCartographer()
+    # Patch process to raise exception
+    monkeypatch.setattr(type(agent.agent), "invoke", lambda self, input_dict: (_ for _ in ()).throw(Exception("fail")))
+    result = agent.process("Test Author")
+    assert result["success"] is False
+    assert "error" in result

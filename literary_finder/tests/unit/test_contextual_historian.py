@@ -45,3 +45,23 @@ def test_handle_error():
     result = agent._handle_error(error, "test context")
     assert isinstance(result, dict)
     assert "error" in result
+
+def test_process_empty_author(monkeypatch):
+    agent = ContextualHistorian()
+    # Patch all tool methods to return empty
+    agent._search_biography = lambda author_name: ""
+    agent._search_historical_context = lambda query: ""
+    agent._search_influences = lambda author_name: ""
+    agent._parse_research_results = lambda output, author_name: {"summary": output}
+    result = agent.process("")
+    assert isinstance(result, dict)
+    assert "data" in result
+
+
+def test_process_exception(monkeypatch):
+    agent = ContextualHistorian()
+    # Patch process to raise exception
+    monkeypatch.setattr(type(agent.agent), "invoke", lambda self, input_dict: (_ for _ in ()).throw(Exception("fail")))
+    result = agent.process("Test Author")
+    assert result["success"] is False
+    assert "error" in result

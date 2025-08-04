@@ -42,3 +42,27 @@ def test_process_returns_dict(monkeypatch):
     else:
         # Should contain error or success False
         assert result.get("success") is False or result.get("error")
+
+def test_process_empty_author(monkeypatch):
+    agent = LegacyConnector()
+    # Patch all tool methods to return empty
+    agent._search_criticism = lambda author_name: ""
+    agent._search_themes_style = lambda author_name: ""
+    agent._parse_legacy_results = lambda output, author_name: {"legacy": output}
+    result = agent.process("")
+    assert isinstance(result, dict)
+    # If process fails, data may be None
+    if result["data"] is not None:
+        assert "legacy" in result["data"]
+    else:
+        # Should contain error or success False
+        assert result.get("success") is False or result.get("error")
+
+
+def test_process_exception(monkeypatch):
+    agent = LegacyConnector()
+    # Patch process to raise exception
+    monkeypatch.setattr(type(agent.agent), "invoke", lambda self, input_dict: (_ for _ in ()).throw(Exception("fail")))
+    result = agent.process("Test Author")
+    assert result["success"] is False
+    assert "error" in result

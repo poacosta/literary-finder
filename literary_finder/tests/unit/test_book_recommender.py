@@ -22,6 +22,20 @@ def test_get_author_books(agent):
     assert 'Test Book' in result
     assert 'A test book description' in result
 
+def test_get_author_books_empty(monkeypatch):
+    agent = BookRecommendationAgent()
+    # Simulate no books found
+    agent.google_books = type("Dummy", (), {"search_books_by_author": lambda self, author_name, max_results=10: []})()
+    result = agent._get_author_books("Unknown Author")
+    assert "No books found" in result
+
+def test_get_author_books_quality(monkeypatch):
+    agent = BookRecommendationAgent()
+    # Simulate books with short descriptions
+    agent.google_books = type("Dummy", (), {"search_books_by_author": lambda self, author_name, max_results=10: [type('Book', (), {'title': 'Short', 'published_date': '2020', 'description': 'Short', 'categories': ['Fiction']})() for _ in range(5)]})()
+    result = agent._get_author_books("Test Author")
+    assert "Books by Test Author" in result
+
 def test_get_agent_role():
     agent = BookRecommendationAgent()
     assert agent.get_agent_role() == "Book Recommendation Agent"
@@ -48,6 +62,14 @@ def test_process_returns_dict(monkeypatch):
     assert isinstance(result, dict)
     assert "data" in result
     assert "books" in result["data"]
+
+def test_process_exception(monkeypatch):
+    agent = BookRecommendationAgent()
+    # Simulate agent.invoke raising exception
+    monkeypatch.setattr(type(agent.agent), "invoke", lambda self, input_dict: (_ for _ in ()).throw(Exception("fail")))
+    result = agent.process("Test Author")
+    assert result["success"] is False
+    assert "error" in result
 
 def test_handle_error(monkeypatch):
     agent = BookRecommendationAgent()
