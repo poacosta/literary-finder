@@ -41,7 +41,7 @@ cp .env.example .env
 
 ```bash
 # Make sure your .env file contains your API keys
-docker-compose up --build
+docker compose up --build
 ```
 
 The Gradio web interface will be available at [http://localhost:7860](http://localhost:7860)
