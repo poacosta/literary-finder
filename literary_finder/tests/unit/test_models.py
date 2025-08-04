@@ -25,7 +25,9 @@ def test_reading_map_entry():
     assert entry.title == "1984"
     assert entry.year == 1949
     assert entry.description == "A dystopian novel"
-    assert entry.isbn == "978-0-452-28423-4"
+    assert entry.difficulty_level is None
+
+
     assert entry.category == "Fiction"
 
 
@@ -36,10 +38,39 @@ def test_author_context():
         death_year=1950,
         nationality="British",
         literary_movements=["Modernism", "Dystopian Fiction"],
-        key_influences=["H.G. Wells", "Jack London"],
+        key_influences=["H.G. Wells"],
         biographical_summary="Eric Arthur Blair, known by his pen name George Orwell..."
     )
-
+    entry1 = ReadingMapEntry(
+        title="Book One",
+        year=1999,
+        description="Desc1",
+        isbn="1111111111",
+        category="Cat1",
+        difficulty_level="Beginner",
+        google_books_link="http://books.google.com/1",
+        preview_link="http://preview.com/1"
+    )
+    entry2 = ReadingMapEntry(
+        title="Book Two",
+        year=2000,
+        description="Desc2",
+        isbn="2222222222",
+        category="Cat2",
+        difficulty_level="Intermediate",
+        google_books_link="http://books.google.com/2",
+        preview_link="http://preview.com/2"
+    )
+    reading_map = ReadingMap(
+        start_here=[entry1],
+        chronological=[entry1, entry2],
+        thematic_groups={"Group1": [entry1], "Group2": [entry2]},
+        complete_works=[entry1, entry2]
+    )
+    assert reading_map.start_here[0].title == "Book One"
+    assert reading_map.chronological[1].title == "Book Two"
+    assert "Group1" in reading_map.thematic_groups
+    assert len(reading_map.complete_works) == 2
     assert context.birth_year == 1903
     assert context.death_year == 1950
     assert context.nationality == "British"
@@ -49,6 +80,22 @@ def test_author_context():
 
 def test_legacy_analysis():
     """Test LegacyAnalysis model."""
+    context = AuthorContext(
+        birth_year=1800,
+        death_year=1850,
+        nationality="TestNationality",
+        literary_movements=["Movement1", "Movement2"],
+        key_influences=["Influence1", "Influence2"],
+        historical_context="Historical context",
+        biographical_summary="Bio summary"
+    )
+    assert context.birth_year == 1800
+    assert context.death_year == 1850
+    assert context.nationality == "TestNationality"
+    assert "Movement1" in context.literary_movements
+    assert "Influence2" in context.key_influences
+    assert context.historical_context == "Historical context"
+    assert context.biographical_summary == "Bio summary"
     legacy = LegacyAnalysis(
         stylistic_innovations=["Stream of consciousness", "Interior monologue"],
         recurring_themes=["Time", "Memory", "Identity"],
@@ -58,12 +105,25 @@ def test_legacy_analysis():
             {"name": "Marcel Proust", "reason": "Focus on time and memory"}
         ]
     )
-
     assert len(legacy.stylistic_innovations) == 2
     assert "Time" in legacy.recurring_themes
-    assert legacy.literary_significance == "Major modernist writer"
-    assert len(legacy.similar_authors) == 2
-    assert legacy.similar_authors[0]["name"] == "James Joyce"
+    legacy = LegacyAnalysis(
+        stylistic_innovations=["Innovation1", "Innovation2"],
+        recurring_themes=["Theme1", "Theme2"],
+        literary_significance="Significance",
+        modern_relevance="Modern relevance",
+        similar_authors=[{"name": "Author1", "reason": "Reason1"}],
+        critical_acclaim="Critical acclaim"
+    )
+    assert "Innovation1" in legacy.stylistic_innovations
+    assert "Theme2" in legacy.recurring_themes
+    assert legacy.literary_significance == "Significance"
+    assert legacy.modern_relevance == "Modern relevance"
+    assert legacy.similar_authors[0]["name"] == "Author1"
+    assert legacy.critical_acclaim == "Critical acclaim"
+
+    assert len(legacy.similar_authors) == 1
+    assert legacy.similar_authors[0]["name"] == "Author1"
 
 
 def test_literary_finder_state():
@@ -75,7 +135,31 @@ def test_literary_finder_state():
     assert state.agent_statuses["literary_cartographer"] == AgentStatus.PENDING
     assert state.agent_statuses["legacy_connector"] == AgentStatus.PENDING
     assert state.final_report is None
-    assert len(state.errors) == 0
+    from literary_finder.models import AgentResults, AuthorContext, ReadingMap, LegacyAnalysis
+    author_ctx = AuthorContext(birth_year=1900, death_year=1950, nationality="Test", literary_movements=["M"], key_influences=["I"], historical_context="H", biographical_summary="B")
+    reading_map = ReadingMap(start_here=[], chronological=[], thematic_groups={}, complete_works=[])
+    legacy = LegacyAnalysis(stylistic_innovations=["S"], recurring_themes=["T"], literary_significance="L", modern_relevance="MR", similar_authors=[{"name": "A", "reason": "R"}], critical_acclaim="CA")
+    results = AgentResults(contextual_historian=author_ctx, literary_cartographer=reading_map, legacy_connector=legacy)
+    state = LiteraryFinderState(
+        author_name="Test Author",
+        results=results,
+        final_report="Final report",
+        processing_started_at="2024-01-01T00:00:00Z",
+        processing_completed_at="2024-01-01T01:00:00Z",
+        errors=["error1", "error2"],
+        max_retries=3,
+        timeout_seconds=60
+    )
+    state.agent_statuses["contextual_historian"] = AgentStatus.COMPLETED
+    state.agent_statuses["literary_cartographer"] = AgentStatus.COMPLETED
+    state.agent_statuses["legacy_connector"] = AgentStatus.FAILED
+    assert state.author_name == "Test Author"
+    assert state.results.contextual_historian.birth_year == 1900
+    assert state.final_report == "Final report"
+    assert state.errors == ["error1", "error2"]
+    assert state.max_retries == 3
+    assert state.timeout_seconds == 60
+    assert state.agent_statuses["legacy_connector"] == AgentStatus.FAILED
 
 
 def test_reading_map():

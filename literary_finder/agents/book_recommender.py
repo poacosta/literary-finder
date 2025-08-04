@@ -12,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 class BookRecommendationAgent(BaseAgent):
+    def get_agent_role(self) -> str:
+        return "Book Recommendation Agent"
     """Lightweight agent focused on book recommendations using Google Books API."""
 
     def __init__(self, **kwargs):
