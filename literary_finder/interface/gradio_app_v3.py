@@ -5,7 +5,9 @@ import logging
 import time
 import os
 from typing import Tuple, Optional
+from langsmith import traceable
 from ..orchestration import LiteraryFinderGraph
+from ..config import LangSmithConfig
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -24,6 +26,12 @@ def initialize_graph() -> str:
     global literary_graph
 
     try:
+        # Initialize LangSmith tracing
+        LangSmithConfig.setup_tracing("literary-finder-gradio")
+        
+        if LangSmithConfig.is_enabled():
+            logger.info("🔍 LangSmith tracing enabled for Gradio interface")
+        
         # Check for required environment variables
         if not os.getenv("OPENAI_API_KEY"):
             return "⚠️ No OpenAI API key found in environment - users must provide their own"
@@ -41,6 +49,7 @@ def initialize_graph() -> str:
         return f"❌ Initialization failed: {str(e)}"
 
 
+@traceable(name="gradio_analyze_author")
 def analyze_author(
         author_name: str,
         enable_parallel: bool = True,
