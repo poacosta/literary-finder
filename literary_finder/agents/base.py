@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 from langchain.agents import AgentExecutor
 from langchain.tools import Tool
 from langchain_openai import ChatOpenAI
+from langsmith import traceable
 import logging
 import os
 
@@ -60,6 +61,7 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
+    @traceable(name="agent_process")
     def process(self, author_name: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Process the author information and return results."""
         pass

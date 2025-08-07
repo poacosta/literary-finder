@@ -37,6 +37,11 @@ cp .env.example .env
 - `OPENAI_API_KEY` (get from [OpenAI Platform](https://platform.openai.com/))
 - `GOOGLE_API_KEY` (get from [Google Cloud Console](https://console.cloud.google.com/))
 
+**Optional (for tracing and monitoring):**
+
+- `LANGCHAIN_API_KEY` (get from [LangSmith](https://smith.langchain.com/))
+- `LANGCHAIN_PROJECT` (custom project name for organization)
+
 ### 3. Launch with Docker (Recommended)
 
 ```bash
@@ -172,6 +177,31 @@ The Literary Finder implements a **supervisor-delegated multi-agent architecture
 - **Scalability:** Horizontal scaling through distributed agent execution
 - **Observability:** Full transparency into agent decision-making processes
 
+### LangSmith Observability Integration
+
+The Literary Finder includes comprehensive tracing and monitoring through LangSmith integration:
+
+#### **Distributed Tracing**
+
+- **End-to-End Visibility:** Complete request tracing from API/UI to final report generation
+- **Agent-Level Tracing:** Individual agent execution monitoring with performance metrics
+- **Tool Usage Tracking:** Detailed logging of external API calls (OpenAI, Google Books)
+- **Error Propagation:** Full error context capture across the multi-agent pipeline
+
+#### **Performance Monitoring**
+
+- **Execution Timing:** Precise measurement of agent processing times and bottlenecks
+- **Resource Utilization:** Token usage tracking and API call optimization insights
+- **Quality Metrics:** Content quality scoring correlation with execution patterns
+- **Comparative Analysis:** Parallel vs sequential execution mode performance tracking
+
+#### **Production Observability**
+
+- **Real-Time Monitoring:** Live system performance dashboards and alerting
+- **Historical Analysis:** Long-term trend analysis for system optimization
+- **Debug Capabilities:** Detailed trace inspection for troubleshooting
+- **Multi-Environment Support:** Separate project tracking for dev/test/prod environments
+
 ### Performance Evaluation System
 
 The Literary Finder includes a comprehensive performance evaluation framework that assesses:
@@ -216,10 +246,25 @@ Edit your `.env` file with the following:
 OPENAI_API_KEY=your_openai_api_key
 GOOGLE_API_KEY=your_google_books_api_key
 
+# LangSmith Tracing (Optional but recommended for production)
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_API_KEY=your_langchain_api_key
+LANGCHAIN_PROJECT=literary-finder-prod
+
 # Optional
 LOG_LEVEL=INFO
 MAX_CONCURRENT_REQUESTS=5
+ENVIRONMENT=prod  # Affects default LangSmith project names
 ```
+
+### LangSmith Configuration
+
+LangSmith provides comprehensive observability for the multi-agent system. When properly configured:
+
+- **Automatic Project Naming:** Projects are automatically named by environment (`literary-finder-dev`, `literary-finder-prod`, etc.)
+- **Graceful Degradation:** System runs normally without LangSmith if not configured
+- **Multi-Interface Support:** Tracing works across Gradio UI, REST API, and direct Python usage
+- **Environment Isolation:** Separate tracking for different deployment environments
 
 ## Development
 
@@ -233,6 +278,8 @@ literary_finder/
 ├── models/              # Pydantic data models
 ├── orchestration/       # LangGraph workflow
 ├── tools/               # External API integrations (OpenAI, Google Books)
+├── evaluation/          # Performance evaluation and metrics
+├── config.py            # LangSmith and system configuration
 └── app.py               # Main Gradio application
 ```
 
@@ -256,10 +303,26 @@ python -m literary_finder.app
 ### Running Tests
 
 ```bash
+# Run all tests
 pytest
-# Or with coverage
+
+# Run tests with coverage
 pytest --cov=literary_finder
+
+# Run tests excluding Gradio test (to avoid OpenAI API token consumption)
+pytest --ignore=test_gradio.py
+
+# Run only unit and integration tests (recommended)
+pytest literary_finder/tests/
+
+# Run tests with coverage excluding Gradio test
+pytest --cov=literary_finder --ignore=test_gradio.py
+
+# Generate HTML coverage report
+pytest --cov=literary_finder --cov-report=html --ignore=test_gradio.py
 ```
+
+**Note**: The `test_gradio.py` file creates the actual Gradio interface during testing, which may consume OpenAI API tokens. Use `--ignore=test_gradio.py` to avoid token usage during testing.
 
 ## Performance Benchmarks
 

@@ -3,9 +3,11 @@
 from typing import Dict, Any, List, Optional
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
+from langsmith import traceable
 from ..models import LiteraryFinderState, AgentStatus
 from ..agents import ContextualHistorian, LiteraryCartographer, LegacyConnector
 from ..evaluation import PerformanceEvaluator, PerformanceReport
+from ..config import LangSmithConfig
 import logging
 from datetime import datetime
 import asyncio
@@ -25,6 +27,10 @@ class LiteraryFinderGraph:
         self.model_name = model_name
         self.enable_parallel = enable_parallel
         self.enable_evaluation = enable_evaluation
+        
+        # Setup LangSmith tracing if not already configured
+        if not LangSmithConfig.is_enabled():
+            LangSmithConfig.setup_tracing()
 
         # Initialize performance evaluator
         self.evaluator = PerformanceEvaluator() if enable_evaluation else None
@@ -431,6 +437,7 @@ class LiteraryFinderGraph:
 
         return report
 
+    @traceable(name="literary_finder_process_author")
     def process_author(self, author_name: str) -> Dict[str, Any]:
         """Process an author through the complete Literary Finder pipeline."""
         try:

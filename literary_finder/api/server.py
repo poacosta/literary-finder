@@ -6,8 +6,10 @@ from pydantic import BaseModel
 from typing import Optional
 import logging
 import time
+from langsmith import traceable
 from ..orchestration import LiteraryFinderGraph
 from ..models import APIResponse
+from ..config import LangSmithConfig
 import os
 
 logging.basicConfig(level=logging.INFO)
@@ -56,6 +58,14 @@ async def startup_event():
     global literary_graph
 
     try:
+        # Initialize LangSmith tracing
+        LangSmithConfig.setup_tracing("literary-finder-api")
+        
+        if LangSmithConfig.is_enabled():
+            logger.info("🔍 LangSmith tracing enabled for API")
+        else:
+            logger.info("📊 LangSmith tracing disabled (API key not configured)")
+        
         # Check for required environment variables
         required_vars = ["OPENAI_API_KEY"]
         missing_vars = [var for var in required_vars if not os.getenv(var)]
@@ -103,6 +113,7 @@ async def health_check():
 
 
 @app.post("/analyze", response_model=AuthorResponse)
+@traceable(name="api_analyze_author")
 async def analyze_author(request: AuthorRequest):
     """Analyze an author and generate a comprehensive report."""
 
