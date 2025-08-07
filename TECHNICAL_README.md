@@ -182,18 +182,21 @@ The Literary Finder implements a **supervisor-delegated multi-agent architecture
 The Literary Finder includes comprehensive tracing and monitoring through LangSmith integration:
 
 #### **Distributed Tracing**
+
 - **End-to-End Visibility:** Complete request tracing from API/UI to final report generation
 - **Agent-Level Tracing:** Individual agent execution monitoring with performance metrics
 - **Tool Usage Tracking:** Detailed logging of external API calls (OpenAI, Google Books)
 - **Error Propagation:** Full error context capture across the multi-agent pipeline
 
 #### **Performance Monitoring**
+
 - **Execution Timing:** Precise measurement of agent processing times and bottlenecks
 - **Resource Utilization:** Token usage tracking and API call optimization insights
 - **Quality Metrics:** Content quality scoring correlation with execution patterns
 - **Comparative Analysis:** Parallel vs sequential execution mode performance tracking
 
 #### **Production Observability**
+
 - **Real-Time Monitoring:** Live system performance dashboards and alerting
 - **Historical Analysis:** Long-term trend analysis for system optimization
 - **Debug Capabilities:** Detailed trace inspection for troubleshooting
@@ -300,10 +303,26 @@ python -m literary_finder.app
 ### Running Tests
 
 ```bash
+# Run all tests
 pytest
-# Or with coverage
+
+# Run tests with coverage
 pytest --cov=literary_finder
+
+# Run tests excluding Gradio test (to avoid OpenAI API token consumption)
+pytest --ignore=test_gradio.py
+
+# Run only unit and integration tests (recommended)
+pytest literary_finder/tests/
+
+# Run tests with coverage excluding Gradio test
+pytest --cov=literary_finder --ignore=test_gradio.py
+
+# Generate HTML coverage report
+pytest --cov=literary_finder --cov-report=html --ignore=test_gradio.py
 ```
+
+**Note**: The `test_gradio.py` file creates the actual Gradio interface during testing, which may consume OpenAI API tokens. Use `--ignore=test_gradio.py` to avoid token usage during testing.
 
 ## Performance Benchmarks
 
