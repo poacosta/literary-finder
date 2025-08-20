@@ -23,6 +23,25 @@ Welcome to The Literary Finder on Hugging Face Spaces! This AI-powered system tr
 
 - [The Literary Finder: A Multi-Agent System for Deep Literary Discovery](https://app.readytensor.ai/publications/the-literary-finder-a-multi-agent-system-for-deep-literary-discovery-BY7PEDORLEaW)
 
+## Prerequisites & Requirements
+
+### System Requirements
+- **Python**: 3.8 or higher
+- **Memory**: 512MB+ RAM available
+- **Network**: Internet connection for API calls
+- **Browser**: Modern web browser for interface access
+
+### Required Dependencies
+- **OpenAI API Key** (required) - For GPT-4o-mini language processing
+- **Google Books API Key** (optional but recommended) - For enhanced bibliography discovery
+
+### Installation Requirements
+All Python dependencies are automatically installed. See [requirements.txt](requirements.txt) for complete list:
+- LangChain & LangGraph for agent orchestration
+- Gradio 5.39.0 for web interface
+- FastAPI for REST API functionality
+- Pydantic for data validation
+
 ## Quick Start
 
 1. **Provide API Keys**: Enter your OpenAI API key in the "API Configuration" section
@@ -102,6 +121,26 @@ Our system uses three specialized AI agents working together:
 
 - **OpenAI**: Ensure your key starts with `sk-` and has available credits
 - **Google**: Make sure Books API is enabled in your Google Cloud project
+
+## License & Usage Rights
+
+**The Literary Finder** is released under the **MIT License**, providing maximum freedom for use, modification, and distribution:
+
+### What You Can Do
+- **Commercial Use**: Deploy in production environments and commercial applications
+- **Modification**: Adapt and extend the codebase for your specific needs
+- **Distribution**: Share the software with others, including modified versions
+- **Private Use**: Use internally within your organization without restrictions
+
+### Your Obligations
+- **Include License**: The MIT license notice must be included in all copies
+- **Attribution**: Credit the original authors when redistributing
+
+### Legal Protection
+- **No Warranty**: Software provided "as-is" without guarantees
+- **Limited Liability**: Authors not liable for any damages from software use
+
+For complete license terms, see the [LICENSE](LICENSE) file.
 
 ## About The Literary Finder
 
