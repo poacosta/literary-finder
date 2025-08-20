@@ -221,9 +221,13 @@ class ContentSafetyGuard:
         if len(clean_name) > 100:
             return False, "Author name too long"
         
-        # Check for basic name pattern (letters, spaces, common punctuation)
-        if not re.match(r'^[A-Za-z\s\.\-\']+$', clean_name):
-            return False, "Author name contains invalid characters"
+        import unicodedata
+        
+        for char in clean_name:
+            if not (char.isspace() or 
+                   char in '.-\'' or 
+                   unicodedata.category(char) in ['Lu', 'Ll', 'Lt', 'Lm', 'Lo', 'Mn', 'Mc']):
+                return False, f"Author name contains invalid character: '{char}'"
         
         # Check for obvious test/inappropriate inputs
         inappropriate_names = [

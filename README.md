@@ -88,6 +88,10 @@ Our system uses three specialized AI agents working together:
 - **Jorge Luis Borges** - Argentine writer of philosophical short stories
 - **Maya Angelou** - Autobiographical works and civil rights activism
 - **Haruki Murakami** - Contemporary Japanese novelist blending reality and surrealism
+- **José Saramago** - Portuguese Nobel laureate known for experimental narratives
+- **Chinua Achebe** - Nigerian author of postcolonial literature
+- **Italo Calvino** - Italian writer of imaginative fiction
+- **Simone de Beauvoir** - French existentialist philosopher and author
 
 ## Technical Features
 
