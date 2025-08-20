@@ -5,6 +5,8 @@ import logging
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from openai import OpenAI
+from openai.types.chat import ChatCompletion
+from ..utils.retry import exponential_backoff, RetryError
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +72,12 @@ class OpenAISearchAPI:
         query = f'Find authors similar to "{author_name}" with comparable writing styles, themes, or literary movements'
         return self._search_with_context(query, "similar_authors")
 
+    @exponential_backoff(
+        max_retries=3,
+        base_delay=2.0,
+        max_delay=30.0,
+        retry_on_exceptions=[Exception]
+    )
     def _search_with_context(
             self,
             query: str,
@@ -101,16 +109,20 @@ class OpenAISearchAPI:
                             "role": "user",
                             "content": f"{query}. Please search the web and provide relevant information with sources."
                         }
-                    ]
+                    ],
+                    timeout=60.0
                 )
 
             results = self._parse_response(response, context)
             logger.info(f"Found {len(results)} search results for query: {query}")
             return results
 
+        except RetryError as e:
+            logger.error(f"All retry attempts failed for OpenAI web search: {e.last_exception}")
+            return self._create_fallback_result(context, str(e.last_exception))
         except Exception as e:
             logger.error(f"Error performing OpenAI web search: {e}")
-            return []
+            return self._create_fallback_result(context, str(e))
 
     def _parse_response(self, response, context: str) -> List[SearchResult]:
         """Parse OpenAI response to extract search results."""
@@ -151,6 +163,16 @@ class OpenAISearchAPI:
             results.append(result)
 
         return results
+
+    def _create_fallback_result(self, context: str, error_message: str) -> List[SearchResult]:
+        """Create a fallback result when search fails."""
+        fallback_result = SearchResult(
+            title=f"Search temporarily unavailable - {context.title()}",
+            link="https://example.com/search-unavailable",
+            snippet=f"Web search for {context} is temporarily unavailable. Please try again later. Error: {error_message[:100]}",
+            display_link="Fallback Search"
+        )
+        return [fallback_result]
 
     def search(self, query: str) -> List[SearchResult]:
         """Generic search method."""

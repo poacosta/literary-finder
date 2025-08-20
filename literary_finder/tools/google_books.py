@@ -5,6 +5,8 @@ import requests
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 import logging
+from requests.exceptions import RequestException, ConnectionError, Timeout
+from ..utils.retry import exponential_backoff, RetryError
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +37,12 @@ class GoogleBooksAPI:
         if not self.api_key:
             logger.warning("Google Books API key not found. Some features may be limited.")
 
+    @exponential_backoff(
+        max_retries=3,
+        base_delay=1.0,
+        max_delay=15.0,
+        retry_on_exceptions=[RequestException, ConnectionError, Timeout]
+    )
     def search_books_by_author(
             self,
             author_name: str,
@@ -67,6 +75,9 @@ class GoogleBooksAPI:
             logger.info(f"Found {len(books)} books for author: {author_name}")
             return books
 
+        except RetryError as e:
+            logger.error(f"All retry attempts failed for Google Books search: {e.last_exception}")
+            return []
         except requests.RequestException as e:
             logger.error(f"Error searching Google Books: {e}")
             return []
@@ -74,6 +85,12 @@ class GoogleBooksAPI:
             logger.error(f"Unexpected error in Google Books search: {e}")
             return []
 
+    @exponential_backoff(
+        max_retries=3,
+        base_delay=1.0,
+        max_delay=15.0,
+        retry_on_exceptions=[RequestException, ConnectionError, Timeout]
+    )
     def get_book_details(self, volume_id: str) -> Optional[BookInfo]:
         """Get detailed information about a specific book."""
         try:
@@ -92,6 +109,9 @@ class GoogleBooksAPI:
 
             return self._parse_book_info(volume_info, access_info)
 
+        except RetryError as e:
+            logger.error(f"All retry attempts failed for Google Books book details: {e.last_exception}")
+            return None
         except requests.RequestException as e:
             logger.error(f"Error getting book details: {e}")
             return None

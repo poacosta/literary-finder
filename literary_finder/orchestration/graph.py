@@ -8,9 +8,12 @@ from ..models import LiteraryFinderState, AgentStatus
 from ..agents import ContextualHistorian, LiteraryCartographer, LegacyConnector
 from ..evaluation import PerformanceEvaluator, PerformanceReport
 from ..config import LangSmithConfig
+from ..utils.retry import exponential_backoff, RetryError
+from ..utils.safety_guardrails import ContentSafetyGuard
 import logging
 from datetime import datetime
 import asyncio
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +37,9 @@ class LiteraryFinderGraph:
 
         # Initialize performance evaluator
         self.evaluator = PerformanceEvaluator() if enable_evaluation else None
+        
+        # Initialize safety guardrails
+        self.safety_guard = ContentSafetyGuard()
 
         # Initialize agents with OpenAI only
         self.historian = ContextualHistorian(
@@ -79,6 +85,47 @@ class LiteraryFinderGraph:
         workflow.set_entry_point("start")
 
         return workflow.compile(checkpointer=MemorySaver())
+
+    def _safe_run_agent(self, agent, agent_name: str, author_name: str, context: Dict = None, max_retries: int = 2) -> Dict[str, Any]:
+        """Safely run an agent with retries and error handling."""
+        last_error = None
+        
+        for attempt in range(max_retries + 1):
+            try:
+                logger.info(f"Running {agent_name} (attempt {attempt + 1}/{max_retries + 1})")
+                
+                if context:
+                    result = agent.process(author_name, context)
+                else:
+                    result = agent.process(author_name)
+                
+                if result["success"]:
+                    logger.info(f"{agent_name} completed successfully")
+                    return result
+                else:
+                    last_error = result.get('error', 'Unknown error')
+                    logger.warning(f"{agent_name} failed on attempt {attempt + 1}: {last_error}")
+                    
+                    if attempt < max_retries:
+                        delay = 2.0 * (2 ** attempt)
+                        logger.info(f"Retrying {agent_name} in {delay} seconds...")
+                        asyncio.sleep(delay) if asyncio.iscoroutinefunction(agent.process) else time.sleep(delay)
+                    
+            except Exception as e:
+                last_error = str(e)
+                logger.error(f"{agent_name} error on attempt {attempt + 1}: {e}")
+                
+                if attempt < max_retries:
+                    delay = 2.0 * (2 ** attempt)
+                    logger.info(f"Retrying {agent_name} after exception in {delay} seconds...")
+                    asyncio.sleep(delay) if asyncio.iscoroutinefunction(agent.process) else time.sleep(delay)
+        
+        logger.error(f"All attempts failed for {agent_name}. Last error: {last_error}")
+        return {
+            "success": False,
+            "error": f"All retry attempts failed: {last_error}",
+            "data": None
+        }
 
     def _start_processing(self, state: LiteraryFinderState) -> Dict[str, Any]:
         """Initialize processing."""
@@ -312,9 +359,26 @@ class LiteraryFinderGraph:
                 legacy=state.results.legacy_connector
             )
 
+            is_safe, violations = self.safety_guard.validate_content(report, "analysis")
+            
+            if not is_safe:
+                logger.warning(f"Safety violations detected in final report: {len(violations)} issues")
+                report = self.safety_guard.sanitize_content(report, violations)
+                
+                safety_report = self.safety_guard.create_safety_report(violations)
+                safety_message = f"Content safety review completed: {safety_report['status']} (found {safety_report['total_violations']} issues)"
+                
+                return {
+                    "final_report": report,
+                    "processing_completed_at": datetime.now().isoformat(),
+                    "safety_review": safety_report,
+                    "errors": state.errors + [safety_message] if violations else state.errors
+                }
+
             return {
                 "final_report": report,
-                "processing_completed_at": datetime.now().isoformat()
+                "processing_completed_at": datetime.now().isoformat(),
+                "safety_review": {"status": "safe", "total_violations": 0}
             }
 
         except Exception as e:
@@ -441,6 +505,16 @@ class LiteraryFinderGraph:
     def process_author(self, author_name: str) -> Dict[str, Any]:
         """Process an author through the complete Literary Finder pipeline."""
         try:
+            # Validate author name with safety guardrails
+            is_valid, error_message = self.safety_guard.validate_author_name(author_name)
+            if not is_valid:
+                logger.error(f"Invalid author name: {error_message}")
+                return {
+                    "success": False,
+                    "error": f"Invalid author name: {error_message}",
+                    "data": None
+                }
+            
             # Start performance evaluation
             if self.evaluator:
                 self.evaluator.start_evaluation()
